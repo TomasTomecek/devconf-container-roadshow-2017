@@ -1,0 +1,487 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Advanced container deep-dive</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/solarized.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Printing and PDF exports -->
+    <script>
+var link = document.createElement( 'link' );
+link.rel = 'stylesheet';
+link.type = 'text/css';
+link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+        <section>
+          <h1>Advanced container deep-dive</h1>
+          <p>
+            <div>Tomáš Tomeček</div>
+            <div>Peter Schiffer</div>
+          </p>
+        </section>
+
+        <section>
+          <h2>Intro</h2>
+            <ul>
+              <li class="fragment">Very very technical.</li>
+              <li class="fragment">Very, very, very...</li>
+              <li class="fragment">...technical.</li>
+              <li class="fragment">Please suggest, ask, comment.</li>
+              <li class="fragment">Vagrant</li>
+              <li class="fragment"><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Agenda</h2>
+          <ul>
+            <li>Debugging containers</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Logs</h2>
+            <ul>
+              <li>How do I see logs of my application? (nginx)</li>
+              <li>Can I see how to access it via API? (curl)</li>
+              <li>Nicer, please. (docker-py)</li>
+              <li>How do I see logs from files inside container? (postgresql)</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>RHSCL nginx</li>
+              <li>RHSCL postgresql</li>
+              <li>Running/stopped container</li>
+              <li>sleep 9999 trick to enable d exec bash</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Building images</h2>
+            <ul>
+              <li>Secrets</li>
+              <li>Layering</li>
+              <li>Cache</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>demo secrets, with SSH key</li>
+              <li>demo layering, with nasty dnf installs: show size difference</li>
+              <li>demo cache: using cached git clone</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Capabilities</h2>
+            <ul>
+              <li>What capabilities a container has by default?</li>
+              <li>What capabilities a privileged container has by default?</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>Explain some of those capabilities</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Debugging - tools</h2>
+            <ul>
+              <li>strace</li>
+              <li>docker run -ti image bash</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>binary to open a file and fail with: No such file or dir</li>
+              <li>the container has ENTRYPOINT set to the binary</li>
+              <li>strace docker run</li>
+              <li>strace inside container</li>
+              <li>install strace first</li>
+              <li>via docker exec -u root</li>
+              <li>docker run bash</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Networking</h2>
+            <ul>
+              <li>So how does networking work by default?</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>create and start a container</li>
+              <li>show bridge</li>
+              <li>show veth interfaces (find a picture)</li>
+              <li>show firewall rules</li>
+              <li>show podvody's debugging tool</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>SELinux</h2>
+            <ul>
+              <li>:z</li>
+              <li>:Z</li>
+              <li>--security-opt=label:disable</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>-v /etc:/etc:z</li>
+              <li>-v /etc:/etc:Z</li>
+              <li>show 2 containers accessing the dir</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Namespaces</h2>
+            <ul>
+              <li>Please show me the details of namespaces.</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>/proc/self/ns/</li>
+              <li>write a simple python code to do setns</li>
+              <li>what is it for?</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Cgroups</h2>
+            <ul>
+              <li>How does setting resources for my containers work?</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>create container with limits</li>
+              <li>show the limits in cgroup filessytem</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>seccomp</h2>
+            <ul>
+              <li>What is this?</li>
+              <li>And how is this useful?</li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>create custom profile to block reboot syscall</li>
+              <li>but reboot the VM first :D</li>
+            </ul>
+          </aside>
+        </section>
+
+
+
+
+
+
+
+        <!--
+        <section data-background-color="#ff0000">
+          <h1 class="black-text">
+            Do not try this in production!
+          </h1>
+        </section>
+
+        <section>
+          <p>Let's create thg <i>worst</i> container image for nginx webserver.</p>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Content</h2>
+          <ul>
+            <li class="fragment">Base image</li>
+            <li class="fragment">The software itself</li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Distribution, company</li>
+              <li>Support, up to date content, CVEs</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Content II</h2>
+          <code class="fragment"><pre>
+FROM random-image:0.0.1
+RUN curl -sL https://gist.githubusercontent.com/TomasTomecek/d3dded10e231af8bd288667bf93b8d3f/raw/84ce758212e8532653b8903a0a679e68d0420a24/install_nginx.sh \
+    | sh
+          </pre></code>
+          <code class="fragment"><pre>
+FROM random-image:0.0.1
+RUN curl -sL http://bit.ly/2jUyDq9 | sh
+          </pre></code>
+        </section>
+
+        <section>
+          <h2>Runtime</h2>
+          <ul>
+            <li class="fragment">Configuration</li>
+            <li class="fragment">Starting the service</li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>runtime vs baked in</li>
+              <li>environment variables</li>
+              <li>configuration files</li>
+              <li>run with executable</li>
+              <li>run with script</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Runtime II</h2>
+          <code class="fragment"><pre>
+RUN dnf install -y supervisor
+ADD files/supervisord.conf /etc/supervisord.d/container.ini
+CMD /usr/bin/supervisord
+          </pre></code>
+        </section>
+
+        <section>
+          <h2>Metadata</h2>
+          <ul>
+            <li class="fragment">What's inside?</li>
+            <li class="fragment">How can I use this?</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Metadata II</h2>
+          <code class="fragment"><pre>
+LABEL description = ""
+LABEL name = ""
+          </pre></code>
+          <code class="fragment"><pre>
+LABEL description = "Best enterprise database ever!"
+LABEL name = "httpd"
+LABEL version = "1"
+EXPOSE = 1234
+VOLUME = ["/var/lib/pgsql"]
+          </pre></code>
+        </section>
+
+        <section>
+          <h2>Image size</h2>
+          <ul>
+            <li class="fragment">Layers</li>
+            <li class="fragment">Redundant data</li>
+            <li class="fragment">Redundant services</li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Lego: 10 pieces, every piece on their own is pretty useless, together they form a nice tower</li>
+              <li>immutable layers</li>
+              <li>Build tooling, build artifacts, package manager, documentation, locale</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Image size II</h2>
+          <code class="fragment"><pre>
+RUN dnf install -y ssh
+RUN dnf install -y man-db
+RUN dnf install -y zsh
+RUN dnf install -y tmux
+RUN dnf install -y git
+RUN dnf install -y nyancat
+          </pre></code>
+          <aside class="notes">
+            <ul>
+              <li>useless software</li>
+              <li>cache</li>
+              <li>one file per layer</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Security</h2>
+          <ul>
+            <li class="fragment">Yes or no?</li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Security, yes or no?</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Security II</h2>
+          <code class="fragment"><pre>
+COPY ./build/id_rsa* /root/.ssh/
+ARG GIT_REPOSITORY="ssh://ec2-35-157-101-30.eu-central-1.compute.amazonaws.com/app.git"
+RUN cd /usr/share/nginx/html/
+    git clone ${GIT_REPOSITORY} || \
+    rm ~/.ssh/*
+CMD echo "root:password" | chpasswd && /usr/bin/supervisord
+          </pre></code>
+          <aside class="notes">
+            <ul>
+              <li>Security, yes or no?</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <span style="font-size: 1em;">Sad</span>
+          <span style="font-size: 3em;">demo</span>
+          <aside class="notes">
+            <ul>
+              <li>Security, yes or no?</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section data-background-color="#00ff00">
+          <h1 class="black-text">
+            Best practices
+          </h1>
+          <p>
+          Do try this in production, please!
+          </p>
+        </section>
+
+        <section>
+          <h2>Yuck!</h2>
+          <code class="fragment strike" data-fragment-index="1"><pre>
+FROM tomastomecek/random-image:0.0.1
+RUN curl -sL http://bit.ly/2jUyDq9 | sh</pre></code>
+          <code class="fragment" data-fragment-index="1"><pre>
+FROM fedora:25
+RUN dnf install --setopt='tsflags=nodocs' -y nginx && \
+    dnf clean all</pre></code>
+
+          <aside class="notes">
+            <ul>
+              <li>Pick trusted base image.</li>
+              <li>Compiling from sources is overkill usually.</li>
+              <li>You trust your distribution, right?</li>
+              <li>Configuration via env vars has best UX.</li>
+              <li>Templating is fine too.</li>
+              <li>Overlaying is also fine.</li>
+              <li>Just be sure what's inside!</li>
+              <li>And it suits you.</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Yuck! II</h2>
+          <code class="fragment strike" data-fragment-index="1"><pre>
+LABEL description = "Best enterprise database ever!"
+LABEL name = "httpd"
+LABEL version = "1"
+EXPOSE 1234
+VOLUME ["/var/lib/pgsql"]
+
+RUN dnf install -y supervisor
+RUN dnf install -y openssh-server
+ADD files/supervisord.conf /etc/supervisord.d/container.ini</pre></code>
+          <code class="fragment" data-fragment-index="1"><pre>
+LABEL description = "Production variant of nginx webserver."
+LABEL name = "nginx"
+LABEL version = "1.10.2"
+EXPOSE 80
+VOLUME ["/usr/share/nginx"]</pre></code>
+          <aside class="notes">
+            <ul>
+              <li>Descriptive images are nice images.</li>
+              <li>Documentation is golden.</li>
+              <li>Size matters</li>
+              <li>Images may pile on</li>
+              <li>Chain instructions</li>
+              <li>Share layers</li>
+              <li>Maybe squash</li>
+              <li>Do not carry rubbish.</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Yuck! III</h2>
+          <code class="fragment strike" data-fragment-index="1"><pre>
+CMD echo "root:password" | chpasswd && /usr/bin/supervisord</pre></code>
+          <code class="fragment" data-fragment-index="1"><pre>
+USER nginx
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]</pre></code>
+          <aside class="notes">
+            <ul>
+              <li>Security</li>
+              <li>SELinux!</li>
+            </ul>
+          </aside>
+        </section>
+        -->
+        <section>
+          <h2>Questions are welcome!</h2>
+          TODO add Peter here
+          <ul style="list-style-type: none;">
+            <li><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
+            <li><span class="fa fa-twitter-square"></span> @TomasTomec</li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+// More info https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+  history: true,
+  slideNumber: true,
+  transition: 'none',
+
+  // More info https://github.com/hakimel/reveal.js#dependencies
+  dependencies: [
+  { src: 'plugin/markdown/marked.js' },
+  { src: 'plugin/markdown/markdown.js' },
+  { src: 'plugin/notes/notes.js', async: true },
+  { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+  ]
+});
+    </script>
+  </body>
+</html>
