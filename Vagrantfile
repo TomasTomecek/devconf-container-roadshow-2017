@@ -14,8 +14,8 @@ Vagrant.configure(2) do |config|
     vagrant_host.vm.box = "fedora/25-atomic-host"
     vagrant_host.vm.hostname = "w"
 
-    # config.vm.synced_folder "./", "/home/vagrant/sync/", type: "rsync",
-    #                         rsync__exclude: [ ".git/", ".#*", "*~" ] #want to get all files, but if you target the root, vagrant uses --delete which is no fun
+    config.vm.synced_folder "./", "/home/vagrant/sync/", type: "rsync",
+                            rsync__exclude: [ ".git/", ".#*", "*~" ]
   end
 
 end

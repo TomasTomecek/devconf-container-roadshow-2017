@@ -83,16 +83,28 @@ $ docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock fedora:25
         <section>
           <h2>Logs</h2>
             <ul>
+$ docker run -d -p 80:80 --name nginx modularitycontainers/nginx
+$ curl -v localhost
+$ curl -v localhost/does-not-exist
               <li>How does my container gets run?</li>
+$ docker inspect modularitycontainers/nginx
+$ docker history --no-trunc modularitycontainers/nginx
               <li>How do I see logs of my application? (nginx)</li>
-              atomic install registry.access.redhat.com/rhscl/nginx-18-rhel7
+$ docker logs nginx
+$ docker logs -f nginx
               <li>Can I see how to access it via API? (curl)</li>
+$ docker run -ti --name logger fedora:25 bash
+$ curl --unix-socket /var/run/docker.sock "http:/latest/containers/tt/logs?stderr=1&tail=all"
+$ curl --unix-socket /var/run/docker.sock "http:/latest/containers/tt/logs?stderr=1&stdout=1&tail=1&follow=true"
               <li>Nicer, please. (docker-py)</li>
+$ python3
+>>> import docker
+>>> d = docker.Client(version='auto')
+>>> print(d.logs("tt").decode("utf-8"))
             </ul>
           <aside class="notes">
             <ul>
-              <li>RHSCL nginx</li>
-              <li>sleep 9999 trick to enable d exec bash</li>
+              <li></li>
             </ul>
           </aside>
         </section>
