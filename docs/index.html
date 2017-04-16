@@ -44,7 +44,6 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
               <li class="fragment">Very, very, very...</li>
               <li class="fragment">...technical.</li>
               <li class="fragment">Please suggest, ask, comment.</li>
-              <li class="fragment">Vagrant</li>
               <li class="fragment"><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
             </ul>
           <aside class="notes">
@@ -62,16 +61,56 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
         </section>
 
         <section>
+          <h2>Environment</h2>
+            <ul>
+              <li>Fedora 25 Atomic Host</li>
+              <li>Vagrant</li>
+              <li>Privileged container
+                <code class="fragment"><pre>
+$ docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock fedora:25 bash
+                </pre></code>
+                alias docker="sudo docker"
+                alias d="sudo docker"
+              </li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
           <h2>Logs</h2>
             <ul>
+              <li>How does my container gets run?</li>
               <li>How do I see logs of my application? (nginx)</li>
+              atomic install registry.access.redhat.com/rhscl/nginx-18-rhel7
               <li>Can I see how to access it via API? (curl)</li>
               <li>Nicer, please. (docker-py)</li>
-              <li>How do I see logs from files inside container? (postgresql)</li>
             </ul>
           <aside class="notes">
             <ul>
               <li>RHSCL nginx</li>
+              <li>sleep 9999 trick to enable d exec bash</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Logs</h2>
+            <ul>
+              <li>I want to see logs from files inside container.
+                <code class="fragment"><pre>
+$ docker run --name db -it --rm -p 5432:5432 -e POSTGRESQL_USER=pguser -e POSTGRESQL_PASSWORD=pgpasswd -e POSTGRESQL_DATABASE=our_db registry.access.redhat.com/rhscl/postgresql-95-rhel7
+                </pre></code>
+                docker exec -ti db tail -f '/var/lib/pgsql/data/userdata/pg_log/*.log'  # FIXME: doesn't work
+                docker cp db:/var/lib/pgsql/data/userdata/pg_log/ ./logs
+
+              </li>
+            </ul>
+          <aside class="notes">
+            <ul>
               <li>RHSCL postgresql</li>
               <li>Running/stopped container</li>
               <li>sleep 9999 trick to enable d exec bash</li>
@@ -97,13 +136,67 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
 
         <section>
           <h2>Capabilities</h2>
-            <ul>
-              <li>What capabilities a container has by default?</li>
-              <li>What capabilities a privileged container has by default?</li>
+          <ul>
+            <li class="fragment">What capabilities a container has by default?
+              <code class="fragment"><pre>
+$ docker run --rm -ti getpcaps 1
+              </pre></code>
+            </li>
+              <li class="fragment">What capabilities a privileged container has by default?
+              <code class="fragment"><pre>
+$ docker run --rm -ti --privileged getpcaps 1
+              </pre></code>
+            </li>
             </ul>
           <aside class="notes">
             <ul>
-              <li>Explain some of those capabilities</li>
+              <li>Describe +eip and +i</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Capabilities II</h2>
+          <code class="fragment"><pre>
+$ man capabilities
+          </pre></code>
+          <ul>
+            <li class="fragment"><code>CAP_CHOWN</code> — Make arbitrary changes to file UIDs and GIDs
+              <code><pre>
+$ docker run --rm -ti --cap-drop=chown fedora:25 bash
+
+[root@9c433e5d4427 /]# chown 2:2 root/.bashrc
+chown: changing ownership of 'root/.bashrc': Operation not permitted
+
+[root@9c433e5d4427 /]# ll root/.bashrc
+-rw-r--r-- 1 root root 176 Feb  5  2016 root/.bashrc
+              </pre></code>
+            </li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Show manpage, tell important parts</li>
+              <li>Do the demo</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Capabilities III</h2>
+          <ul>
+            <li class="fragment">CAP_SETFCAP</li>
+            <li class="fragment">CAP_SETPCAP</li>
+            <li class="fragment">CAP_DAC_OVERRIDE</li>
+            <li class="fragment">CAP_NET_BIND_SERVICE — service can bind to ports &lt;1024</li>
+            <li class="fragment">CAP_NET_RAW</li>
+            <li class="fragment">CAP_SYS_ADMIN</li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>Show dac_override with root</li>
+              <li>Show dac_override without root</li>
+              <li>Show ping's capabilities</li>
+              <li>Describe CAP_SYS_ADMIN</li>
             </ul>
           </aside>
         </section>
@@ -112,6 +205,15 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
           <h2>Debugging - tools</h2>
             <ul>
               <li>strace</li>
+              docker run --rm -ti this-errors-out
+              strace docker run --rm -ti this-errors-out
+              docker inspect
+              docker history
+              strace /this-errors-out
+              #TODO new binary: create file and error out - simlate service
+                    CMD = sleep & run; docker exec && strace
+                    or sleep; strace $service
+                    docker exec -u root
               <li>docker run -ti image bash</li>
             </ul>
           <aside class="notes">
@@ -196,6 +298,7 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
             <ul>
               <li>create custom profile to block reboot syscall</li>
               <li>but reboot the VM first :D</li>
+              <li>CAP_SYS_BOOT, CAP_SYS_MODULE, mention CAP_SYS_ADMIN (mount)</li>
             </ul>
           </aside>
         </section>

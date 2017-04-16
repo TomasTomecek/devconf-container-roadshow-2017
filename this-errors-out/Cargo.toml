@@ -1,0 +1,6 @@
+[package]
+name = "this-errors-out"
+version = "0.1.0"
+authors = ["Tomas Tomecek <ttomecek@redhat.com>"]
+
+[dependencies]

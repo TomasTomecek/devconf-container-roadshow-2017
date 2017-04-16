@@ -1,0 +1,4 @@
+.vagrant/
+playbook.retry
+this-errors-out/target/
+this-errors-out/Cargo.lock

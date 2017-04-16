@@ -1,0 +1,24 @@
+---
+- name: build docker image
+  hosts: localhost
+  vars:
+    wipe: false
+    i_state: '{{ "absent" if wipe == "true" else "present" }}'
+  tasks:
+    - name: build toy image
+      docker_image:
+        path: .
+        name: toy
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true
+    - name: build this-errors-out image
+      docker_image:
+        path: ./this-errors-out/
+        name: this-errors-out
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true
+
