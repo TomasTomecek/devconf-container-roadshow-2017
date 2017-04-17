@@ -1,10 +1,7 @@
-FROM fedora:25
+FROM base
 
-ARG USER_ID=1000
-ARG USERNAME="app"
 ARG GIT_REPOSITORY="ssh://${USERNAME}@git.example.com/app.git"
 
-RUN set -x && adduser -m -u ${USER_ID} ${USERNAME}
 USER ${USERNAME}
 
 COPY fresh_ssh_key* /home/${USERNAME}/.ssh/

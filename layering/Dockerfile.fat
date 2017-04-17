@@ -1,4 +1,4 @@
-FROM fedora:25
+FROM base
 RUN dnf install -y git
 RUN dnf install -y python3-pip
 RUN dnf install -y npm

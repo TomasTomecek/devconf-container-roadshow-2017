@@ -1,14 +1,14 @@
 ---
-- name: build docker image
+- name: build images for the workshop
   hosts: localhost
   vars:
     wipe: false
     i_state: '{{ "absent" if wipe == "true" else "present" }}'
   tasks:
-    - name: build toy image
+    - name: build base image
       docker_image:
-        path: .
-        name: toy
+        path: base
+        name: base
         tag: latest
         state: '{{ i_state }}'
         pull: no

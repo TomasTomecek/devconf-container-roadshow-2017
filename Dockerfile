@@ -1,6 +1,0 @@
-FROM fedora:25
-
-ARG USER_ID=1000
-ARG USERNAME=mojko
-RUN useradd -o -u ${USER_ID} ${USERNAME}
-USER $USERNAME
