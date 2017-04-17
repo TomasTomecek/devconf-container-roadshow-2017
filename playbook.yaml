@@ -16,8 +16,9 @@
     - name: build this-errors-out image
       docker_image:
         path: ./this-errors-out/
-        name: this-errors-out
+        name: this-always-works
         tag: latest
+        nocache: yes
         state: '{{ i_state }}'
         pull: no
         force: true
