@@ -1,0 +1,5 @@
+FROM fedora:25
+RUN dnf install -y git
+RUN dnf install -y python3-pip
+RUN dnf install -y npm
+RUN dnf clean all

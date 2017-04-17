@@ -21,4 +21,37 @@
         state: '{{ i_state }}'
         pull: no
         force: true
-
+    - name: build secrets image
+      docker_image:
+        path: ./secrets
+        name: secret-image
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true
+    - name: build fat image
+      docker_image:
+        path: ./layering
+        name: fat
+        dockerfile: Dockerfile.fat
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true
+    - name: build slim image
+      docker_image:
+        path: ./layering
+        name: slim
+        dockerfile: Dockerfile.slim
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true
+    - name: build current-date image
+      docker_image:
+        path: ./cache
+        name: current-date
+        tag: latest
+        state: '{{ i_state }}'
+        pull: no
+        force: true

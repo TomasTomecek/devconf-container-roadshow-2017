@@ -68,6 +68,7 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
               <li>Privileged container
                 <code class="fragment"><pre>
 $ docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock fedora:25 bash
+$ dnf install -y mc strace
                 </pre></code>
                 alias docker="sudo docker"
                 alias d="sudo docker"
@@ -101,6 +102,7 @@ $ python3
 >>> import docker
 >>> d = docker.Client(version='auto')
 >>> print(d.logs("tt").decode("utf-8"))
+https://docs.docker.com/engine/api/v1.28/#operation/ContainerLogs
             </ul>
           <aside class="notes">
             <ul>
@@ -133,15 +135,32 @@ $ docker run --name db -it --rm -p 5432:5432 -e POSTGRESQL_USER=pguser -e POSTGR
         <section>
           <h2>Building images</h2>
             <ul>
-              <li>Secrets</li>
-              <li>Layering</li>
-              <li>Cache</li>
+              <li>How do I handle secrets during build?
+                <code class="fragment"><pre>
+$ docker run --rm -ti secret-image bash
+$ ls -lha /home/app/.ssh
+                </pre></code>
+              </li>
+              <li>Is layering that important?
+                <code class="fragment"><pre>
+$ docker images fat
+$ docker history fat
+$ docker images slim
+$ docker history slim
+                </pre></code>
+              </li>
+              <li>Cache
+                <code class="fragment"><pre>
+$ docker run --rm current-date
+$ docker build --tag=current-date ./cache
+$ docker run --rm current-date
+                </pre></code>
+              </li>
             </ul>
           <aside class="notes">
             <ul>
-              <li>demo secrets, with SSH key</li>
-              <li>demo layering, with nasty dnf installs: show size difference</li>
-              <li>demo cache: using cached git clone</li>
+              <li>just talk about how to fix the insecure dockerfile (curl && rm, 2 images)</li>
+              <li>"date >" command could be git clone or dnf update</li>
             </ul>
           </aside>
         </section>

@@ -1,0 +1,2 @@
+FROM fedora:25
+RUN dnf install --setopt=tsflags=nodocs -y git python3-pip npm && dnf clean all
