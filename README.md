@@ -1,4 +1,4 @@
-# Advanced container topics
+# Advanced container deep-dive
 
 ## Setting up Vagrant box
 

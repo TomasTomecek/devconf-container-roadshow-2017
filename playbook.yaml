@@ -1,6 +1,9 @@
 ---
 - name: build images for the workshop
   hosts: localhost
+  remote_user: root
+  become: yes
+  become_method: sudo
   vars:
     wipe: false
     i_state: '{{ "absent" if wipe == "true" else "present" }}'
@@ -56,3 +59,15 @@
         state: '{{ i_state }}'
         pull: no
         force: true
+    - name: pull nginx image
+      docker_image:
+        name: modularitycontainers/nginx
+        tag: latest
+        state: '{{ i_state }}'
+        pull: yes
+    - name: pull postgresql image
+      docker_image:
+        name: registry.access.redhat.com/rhscl/postgresql-95-rhel7
+        tag: latest
+        state: '{{ i_state }}'
+        pull: yes

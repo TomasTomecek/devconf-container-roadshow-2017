@@ -1,4 +1,5 @@
 FROM fedora:25
-ARG USERNAME=dan
+ENV USERNAME=dan
+ARG USERNAME=$USERNAME
 RUN dnf install -y iproute && \
     adduser -m $USERNAME

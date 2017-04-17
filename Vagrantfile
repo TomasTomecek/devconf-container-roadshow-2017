@@ -1,6 +1,8 @@
 
 $provision_bootstrap_script = <<SCRIPT
-rpm-ostree install ansible
+rpm-ostree install ansible mc tmux
+printf "alias docker=\"sudo docker\"" >/home/vagrant/.bashrc
+printf "alias d=\"sudo docker\"" >/home/vagrant/.bashrc
 systemctl reboot
 SCRIPT
 

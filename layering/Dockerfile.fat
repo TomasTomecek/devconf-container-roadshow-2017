@@ -1,5 +1,8 @@
 FROM base
+RUN dnf clean all
 RUN dnf install -y git
+RUN dnf clean all
 RUN dnf install -y python3-pip
+RUN dnf clean all
 RUN dnf install -y npm
 RUN dnf clean all

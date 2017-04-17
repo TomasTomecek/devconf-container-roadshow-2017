@@ -40,11 +40,13 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
         <section>
           <h2>Intro</h2>
             <ul>
-              <li class="fragment">Very very technical.</li>
-              <li class="fragment">Very, very, very...</li>
-              <li class="fragment">...technical.</li>
-              <li class="fragment">Please suggest, ask, comment.</li>
-              <li class="fragment"><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
+              <li class="fragment" data-fragment-index="1">Very very technical.</li>
+              <li class="fragment" data-fragment-index="2">Practical use cases.</li>
+              <li class="fragment" data-fragment-index="3">How it works.</li>
+              <li class="fragment" data-fragment-index="4">Very, very, very...</li>
+              <li class="fragment" data-fragment-index="4">...technical.</li>
+              <li class="fragment" data-fragment-index="5">Please suggest, ask, comment.</li>
+              <li class="fragment" data-fragment-index="6"><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
             </ul>
           <aside class="notes">
             <ul>
@@ -56,23 +58,26 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
         <section>
           <h2>Agenda</h2>
           <ul>
-            <li>Debugging containers</li>
+            <li>Debugging</li>
+            <li>Building images</li>
+            <li>Networking</li>
+            <li>Capabilities</li>
+            <li>SELinux</li>
+            <li>Namespaces</li>
+            <li>Seccomp</li>
           </ul>
         </section>
 
         <section>
           <h2>Environment</h2>
-        TODO: create common base image: dnf cache, iproute
             <ul>
-              <li>Fedora 25 Atomic Host</li>
-              <li>Vagrant</li>
-              <li>Privileged container
-                <code class="fragment"><pre>
-$ docker run --privileged -v /var/run/docker.sock:/var/run/docker.sock fedora:25 bash
-$ dnf install -y mc strace
+              <li class="fragment" data-fragment-index="1">Fedora 25 Atomic Host</li>
+              <li class="fragment" data-fragment-index="1">Vagrant</li>
+              <li class="fragment" data-fragment-index="2">Useful aliases:
+                <code class="fragment" data-fragment-index="2"><pre>
+alias docker="sudo docker"
+alias d="sudo docker"
                 </pre></code>
-                alias docker="sudo docker"
-                alias d="sudo docker"
               </li>
             </ul>
           <aside class="notes">
@@ -83,27 +88,47 @@ $ dnf install -y mc strace
         </section>
 
         <section>
-          <h2>Logs</h2>
+          <h2>Debugging (getting logs)</h2>
             <ul>
+              <li class="fragment" data-fragment-index="1">Let's start with nginx...
+                <code class="fragment" data-fragment-index="1"><pre>
 $ docker run -d -p 80:80 --name nginx modularitycontainers/nginx
 $ curl -v localhost
 $ curl -v localhost/does-not-exist
-              <li>How does my container gets run?</li>
+                </pre></code>
+              </li>
+              <li class="fragment" data-fragment-index="2">How does my container gets run?
+                <code class="fragment" data-fragment-index="2"><pre>
+$ docker inspect nginx
 $ docker inspect modularitycontainers/nginx
 $ docker history --no-trunc modularitycontainers/nginx
-              <li>How do I see logs of my application? (nginx)</li>
+                </pre></code>
+              </li>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>Containers are being run as scripts or directly via binaries.</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Debugging (getting logs) II</h2>
+            <ul>
+              <li class="fragment" data-fragment-index="1">How do I see logs of my application?
+                <code class="fragment" data-fragment-index="1"><pre>
 $ docker logs nginx
 $ docker logs -f nginx
-              <li>Can I see how to access it via API? (curl)</li>
-$ docker run -ti --name logger fedora:25 bash
-$ curl --unix-socket /var/run/docker.sock "http:/latest/containers/tt/logs?stderr=1&tail=all"
-$ curl --unix-socket /var/run/docker.sock "http:/latest/containers/tt/logs?stderr=1&stdout=1&tail=1&follow=true"
-              <li>Nicer, please. (docker-py)</li>
-$ python3
->>> import docker
->>> d = docker.Client(version='auto')
->>> print(d.logs("tt").decode("utf-8"))
-https://docs.docker.com/engine/api/v1.28/#operation/ContainerLogs
+                </pre></code>
+              </li>
+              <li class="fragment" data-fragment-index="2">How do I get logs via API?
+                <code class="fragment" data-fragment-index="2"><pre>
+$ curl --unix-socket /var/run/docker.sock \
+  "http:/latest/containers/nginx/logs?stderr=1&tail=all"
+$ curl --unix-socket /var/run/docker.sock \
+  "http:/latest/containers/nginx/logs?stderr=1&stdout=1&tail=1&follow=true"
+                </pre></code>
+              </li>
             </ul>
           <aside class="notes">
             <ul>
@@ -113,22 +138,50 @@ https://docs.docker.com/engine/api/v1.28/#operation/ContainerLogs
         </section>
 
         <section>
-          <h2>Logs</h2>
+          <h2>Debugging (getting logs) III</h2>
             <ul>
-              <li>I want to see logs from files inside container.
-                <code class="fragment"><pre>
-$ docker run --name db -it --rm -p 5432:5432 -e POSTGRESQL_USER=pguser -e POSTGRESQL_PASSWORD=pgpasswd -e POSTGRESQL_DATABASE=our_db registry.access.redhat.com/rhscl/postgresql-95-rhel7
+              <li class="fragment" data-fragment-index="1">Nicer, please.
+                <code class="fragment" data-fragment-index="1"><pre>
+$ python3
+>>> import docker
+>>> d = docker.Client(version='auto')
+>>> print(d.logs("nginx").decode("utf-8"))
                 </pre></code>
-                docker exec -ti db tail -f '/var/lib/pgsql/data/userdata/pg_log/*.log'  # FIXME: doesn't work
-                docker cp db:/var/lib/pgsql/data/userdata/pg_log/ ./logs
+              </li>
+              <a class="fragment" data-fragment-index="2"
+                href="https://docs.docker.com/engine/api/v1.28/#operation/ContainerLogs">
+                docs.docker.../api/v1.28/#operation/ContainerLogs</a>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li></li>
+            </ul>
+          </aside>
+        </section>
 
+        <section>
+          <h2>Debugging (getting logs) IV</h2>
+            <ul>
+              <li class="fragment" data-fragment-index="1">I want to see logs from files inside container.
+                <code class="fragment" data-fragment-index="1"><pre>
+$ docker run --name db -it -d -p 5432:5432 \
+  -e POSTGRESQL_USER=pguser \
+  -e POSTGRESQL_PASSWORD=pgpasswd \
+  -e POSTGRESQL_DATABASE=our_db \
+  registry.access.redhat.com/rhscl/postgresql-95-rhel7
+                </pre></code>
+              </li>
+              <li class="fragment" data-fragment-index="2">Let's see the logs then...
+                <code class="fragment" data-fragment-index="2"><pre>
+$ docker exec -ti db bash -c \
+  'tail -f "/var/lib/pgsql/data/userdata/pg_log/*.log"'
+$ docker stop db
+$ docker cp db:/var/lib/pgsql/data/userdata/pg_log/ ./logs
+                </pre></code>
               </li>
             </ul>
           <aside class="notes">
             <ul>
-              <li>RHSCL postgresql</li>
-              <li>Running/stopped container</li>
-              <li>sleep 9999 trick to enable d exec bash</li>
             </ul>
           </aside>
         </section>
@@ -136,22 +189,36 @@ $ docker run --name db -it --rm -p 5432:5432 -e POSTGRESQL_USER=pguser -e POSTGR
         <section>
           <h2>Building images</h2>
             <ul>
-              <li>How do I handle secrets during build?
-                <code class="fragment"><pre>
+              <li class="fragment" data-fragment-index="1">How do I handle secrets during build?
+                <code class="fragment" data-fragment-index="1"><pre>
+$ docker history --no-trunc secret-image
 $ docker run --rm -ti secret-image bash
 $ ls -lha /home/app/.ssh
+$ docker save -o image.tar secret-image
                 </pre></code>
               </li>
-              <li>Is layering that important?
-                <code class="fragment"><pre>
+              <li class="fragment" data-fragment-index="2">Is layering that important?
+                <code class="fragment" data-fragment-index="2"><pre>
 $ docker images fat
-$ docker history fat
+$ docker history --no-trunc fat
 $ docker images slim
-$ docker history slim
+$ docker history --no-trunc slim
                 </pre></code>
               </li>
-              <li>Cache
-                <code class="fragment"><pre>
+            </ul>
+          <aside class="notes">
+            <ul>
+              <li>show ssh keys via docker save secret-image</li>
+              <li>just talk about how to fix the insecure dockerfile (curl &amp;&amp; rm, 2 images)</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Building images II</h2>
+            <ul>
+              <li class="fragment" data-fragment-index="1">Cache
+                <code class="fragment" data-fragment-index="1"><pre>
 $ docker run --rm current-date
 $ docker build --tag=current-date ./cache
 $ docker run --rm current-date
@@ -160,28 +227,31 @@ $ docker run --rm current-date
             </ul>
           <aside class="notes">
             <ul>
-              <li>just talk about how to fix the insecure dockerfile (curl && rm, 2 images)</li>
-              <li>"date >" command could be git clone or dnf update</li>
+              <li>"date &gt;" command could be git clone or dnf update</li>
             </ul>
           </aside>
         </section>
 
         <section>
           <h2>Capabilities</h2>
+          <code class="fragment" data-fragment-index="1"><pre>
+$ man capabilities
+          </pre></code>
           <ul>
-            <li class="fragment">What capabilities a container has by default?
-              <code class="fragment"><pre>
-$ docker run --rm -ti getpcaps 1
+            <li class="fragment" data-fragment-index="2">What capabilities a container has by default?
+              <code class="fragment" data-fragment-index="2"><pre>
+$ docker run --rm -ti fedora:25 getpcaps 1
               </pre></code>
             </li>
-              <li class="fragment">What capabilities a privileged container has by default?
-              <code class="fragment"><pre>
-$ docker run --rm -ti --privileged getpcaps 1
+            <li class="fragment" data-fragment-index="3">What capabilities a privileged container has by default?
+              <code class="fragment" data-fragment-index="3"><pre>
+$ docker run --rm -ti --privileged fedora:25 getpcaps 1
               </pre></code>
             </li>
-            </ul>
+          </ul>
           <aside class="notes">
             <ul>
+              <li>Show manpage, tell important parts</li>
               <li>Describe +eip and +i</li>
             </ul>
           </aside>
@@ -189,11 +259,8 @@ $ docker run --rm -ti --privileged getpcaps 1
 
         <section>
           <h2>Capabilities II</h2>
-          <code class="fragment"><pre>
-$ man capabilities
-          </pre></code>
           <ul>
-            <li class="fragment"><code>CAP_CHOWN</code> — Make arbitrary changes to file UIDs and GIDs
+            <li><code>CAP_CHOWN</code> — Make arbitrary changes to file UIDs and GIDs
               <code><pre>
 $ docker run --rm -ti --cap-drop=chown fedora:25 bash
 
@@ -207,8 +274,6 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
           </ul>
           <aside class="notes">
             <ul>
-              <li>Show manpage, tell important parts</li>
-              <li>Do the demo</li>
               <li>mention --cap-drop ALL</li>
             </ul>
           </aside>
@@ -228,7 +293,8 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
             <ul>
               <li>Show dac_override with root</li>
               <li>Show dac_override without root</li>
-              <li>Show ping's capabilities (getfattr, getcap)</li>
+              <li>getfattr -dm- /usr/sbin/ping</li>
+              <li>getcap /usr/sbin/ping</li>
               <li>Describe CAP_SYS_ADMIN</li>
             </ul>
           </aside>
@@ -269,6 +335,7 @@ $ strace /this-errors-out
 
         <section>
           <h2>Networking</h2>
+          https://docs.docker.com/engine/userguide/networking/
             <ul>
               <li>So how does docker networking work by default?</li>
 docker network ls
@@ -376,258 +443,6 @@ chmod 0000 /root/anaconda-ks.cfg
           </aside>
         </section>
 
-
-
-
-
-
-
-        <!--
-        <section data-background-color="#ff0000">
-          <h1 class="black-text">
-            Do not try this in production!
-          </h1>
-        </section>
-
-        <section>
-          <p>Let's create thg <i>worst</i> container image for nginx webserver.</p>
-          <aside class="notes">
-            <ul>
-              <li></li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Content</h2>
-          <ul>
-            <li class="fragment">Base image</li>
-            <li class="fragment">The software itself</li>
-          </ul>
-          <aside class="notes">
-            <ul>
-              <li>Distribution, company</li>
-              <li>Support, up to date content, CVEs</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Content II</h2>
-          <code class="fragment"><pre>
-FROM random-image:0.0.1
-RUN curl -sL https://gist.githubusercontent.com/TomasTomecek/d3dded10e231af8bd288667bf93b8d3f/raw/84ce758212e8532653b8903a0a679e68d0420a24/install_nginx.sh \
-    | sh
-          </pre></code>
-          <code class="fragment"><pre>
-FROM random-image:0.0.1
-RUN curl -sL http://bit.ly/2jUyDq9 | sh
-          </pre></code>
-        </section>
-
-        <section>
-          <h2>Runtime</h2>
-          <ul>
-            <li class="fragment">Configuration</li>
-            <li class="fragment">Starting the service</li>
-          </ul>
-          <aside class="notes">
-            <ul>
-              <li>runtime vs baked in</li>
-              <li>environment variables</li>
-              <li>configuration files</li>
-              <li>run with executable</li>
-              <li>run with script</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Runtime II</h2>
-          <code class="fragment"><pre>
-RUN dnf install -y supervisor
-ADD files/supervisord.conf /etc/supervisord.d/container.ini
-CMD /usr/bin/supervisord
-          </pre></code>
-        </section>
-
-        <section>
-          <h2>Metadata</h2>
-          <ul>
-            <li class="fragment">What's inside?</li>
-            <li class="fragment">How can I use this?</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>Metadata II</h2>
-          <code class="fragment"><pre>
-LABEL description = ""
-LABEL name = ""
-          </pre></code>
-          <code class="fragment"><pre>
-LABEL description = "Best enterprise database ever!"
-LABEL name = "httpd"
-LABEL version = "1"
-EXPOSE = 1234
-VOLUME = ["/var/lib/pgsql"]
-          </pre></code>
-        </section>
-
-        <section>
-          <h2>Image size</h2>
-          <ul>
-            <li class="fragment">Layers</li>
-            <li class="fragment">Redundant data</li>
-            <li class="fragment">Redundant services</li>
-          </ul>
-          <aside class="notes">
-            <ul>
-              <li>Lego: 10 pieces, every piece on their own is pretty useless, together they form a nice tower</li>
-              <li>immutable layers</li>
-              <li>Build tooling, build artifacts, package manager, documentation, locale</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Image size II</h2>
-          <code class="fragment"><pre>
-RUN dnf install -y ssh
-RUN dnf install -y man-db
-RUN dnf install -y zsh
-RUN dnf install -y tmux
-RUN dnf install -y git
-RUN dnf install -y nyancat
-          </pre></code>
-          <aside class="notes">
-            <ul>
-              <li>useless software</li>
-              <li>cache</li>
-              <li>one file per layer</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Security</h2>
-          <ul>
-            <li class="fragment">Yes or no?</li>
-          </ul>
-          <aside class="notes">
-            <ul>
-              <li>Security, yes or no?</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Security II</h2>
-          <code class="fragment"><pre>
-COPY ./build/id_rsa* /root/.ssh/
-ARG GIT_REPOSITORY="ssh://ec2-35-157-101-30.eu-central-1.compute.amazonaws.com/app.git"
-RUN cd /usr/share/nginx/html/
-    git clone ${GIT_REPOSITORY} || \
-    rm ~/.ssh/*
-CMD echo "root:password" | chpasswd && /usr/bin/supervisord
-          </pre></code>
-          <aside class="notes">
-            <ul>
-              <li>Security, yes or no?</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <span style="font-size: 1em;">Sad</span>
-          <span style="font-size: 3em;">demo</span>
-          <aside class="notes">
-            <ul>
-              <li>Security, yes or no?</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section data-background-color="#00ff00">
-          <h1 class="black-text">
-            Best practices
-          </h1>
-          <p>
-          Do try this in production, please!
-          </p>
-        </section>
-
-        <section>
-          <h2>Yuck!</h2>
-          <code class="fragment strike" data-fragment-index="1"><pre>
-FROM tomastomecek/random-image:0.0.1
-RUN curl -sL http://bit.ly/2jUyDq9 | sh</pre></code>
-          <code class="fragment" data-fragment-index="1"><pre>
-FROM fedora:25
-RUN dnf install --setopt='tsflags=nodocs' -y nginx && \
-    dnf clean all</pre></code>
-
-          <aside class="notes">
-            <ul>
-              <li>Pick trusted base image.</li>
-              <li>Compiling from sources is overkill usually.</li>
-              <li>You trust your distribution, right?</li>
-              <li>Configuration via env vars has best UX.</li>
-              <li>Templating is fine too.</li>
-              <li>Overlaying is also fine.</li>
-              <li>Just be sure what's inside!</li>
-              <li>And it suits you.</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Yuck! II</h2>
-          <code class="fragment strike" data-fragment-index="1"><pre>
-LABEL description = "Best enterprise database ever!"
-LABEL name = "httpd"
-LABEL version = "1"
-EXPOSE 1234
-VOLUME ["/var/lib/pgsql"]
-
-RUN dnf install -y supervisor
-RUN dnf install -y openssh-server
-ADD files/supervisord.conf /etc/supervisord.d/container.ini</pre></code>
-          <code class="fragment" data-fragment-index="1"><pre>
-LABEL description = "Production variant of nginx webserver."
-LABEL name = "nginx"
-LABEL version = "1.10.2"
-EXPOSE 80
-VOLUME ["/usr/share/nginx"]</pre></code>
-          <aside class="notes">
-            <ul>
-              <li>Descriptive images are nice images.</li>
-              <li>Documentation is golden.</li>
-              <li>Size matters</li>
-              <li>Images may pile on</li>
-              <li>Chain instructions</li>
-              <li>Share layers</li>
-              <li>Maybe squash</li>
-              <li>Do not carry rubbish.</li>
-            </ul>
-          </aside>
-        </section>
-
-        <section>
-          <h2>Yuck! III</h2>
-          <code class="fragment strike" data-fragment-index="1"><pre>
-CMD echo "root:password" | chpasswd && /usr/bin/supervisord</pre></code>
-          <code class="fragment" data-fragment-index="1"><pre>
-USER nginx
-CMD ["/usr/sbin/nginx", "-g", "daemon off;"]</pre></code>
-          <aside class="notes">
-            <ul>
-              <li>Security</li>
-              <li>SELinux!</li>
-            </ul>
-          </aside>
-        </section>
-        -->
         <section>
           <h2>Questions are welcome!</h2>
           TODO add Peter here
