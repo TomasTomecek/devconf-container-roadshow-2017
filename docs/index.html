@@ -46,7 +46,7 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
               <li class="fragment" data-fragment-index="4">Very, very, very...</li>
               <li class="fragment" data-fragment-index="4">...technical.</li>
               <li class="fragment" data-fragment-index="5">Please suggest, ask, comment.</li>
-              <li class="fragment" data-fragment-index="6"><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
+              <li class="fragment" data-fragment-index="6"><span class="fa fa-github-square"></span> <a href="https://github.com/TomasTomecek/devconf-container-roadshow-2017">TomasTomecek/devconf-container-roadshow-2017</a></li>
             </ul>
           <aside class="notes">
             <ul>
@@ -70,19 +70,24 @@ document.getElementsByTagName( 'head' )[0].appendChild( link );
 
         <section>
           <h2>Environment</h2>
-            <ul>
-              <li class="fragment" data-fragment-index="1">Fedora 25 Atomic Host</li>
-              <li class="fragment" data-fragment-index="1">Vagrant</li>
-              <li class="fragment" data-fragment-index="2">Useful aliases:
-                <code class="fragment" data-fragment-index="2"><pre>
-alias docker="sudo docker"
-alias d="sudo docker"
-                </pre></code>
-              </li>
-            </ul>
+          <ul>
+            <li class="fragment" data-fragment-index="1">Fedora 25 Atomic Host</li>
+            <code class="fragment" data-fragment-index="1"><pre>
+$ rpm-ostree status
+            </pre></code>
+            <li class="fragment" data-fragment-index="1">Vagrant</li>
+            <li class="fragment" data-fragment-index="2">Useful aliases:
+              <code class="fragment" data-fragment-index="2"><pre>
+$ alias docker="sudo docker"
+$ alias d="sudo docker"
+$ alias
+$ docker images
+              </pre></code>
+            </li>
+          </ul>
           <aside class="notes">
             <ul>
-              <li></li>
+              <li>show the commands</li>
             </ul>
           </aside>
         </section>
@@ -174,7 +179,7 @@ $ docker run --name db -it -d -p 5432:5432 \
               <li class="fragment" data-fragment-index="2">Let's see the logs then...
                 <code class="fragment" data-fragment-index="2"><pre>
 $ docker exec -ti db bash -c \
-  'tail -f "/var/lib/pgsql/data/userdata/pg_log/*.log"'
+  "tail -f /var/lib/pgsql/data/userdata/pg_log/*.log"
 $ docker stop db
 $ docker cp db:/var/lib/pgsql/data/userdata/pg_log/ ./logs
                 </pre></code>
@@ -182,9 +187,65 @@ $ docker cp db:/var/lib/pgsql/data/userdata/pg_log/ ./logs
             </ul>
           <aside class="notes">
             <ul>
+              <li>docker logs -f db</li>
+              <li>Future log output will appear in directory "pg_log"</li>
             </ul>
           </aside>
         </section>
+
+        <section>
+          <h2>Debugging - tools</h2>
+          <ul>
+            <li class="fragment" data-fragment-index="1">They said it always works:
+              <code class="fragment" data-fragment-index="2"><pre>
+$ docker run --rm -ti --name=working-container this-always-works
+              </pre></code>
+              <code class="fragment" data-fragment-index="3"><pre>
+$ sudo strace docker run --rm -ti this-always-works
+              </pre></code>
+              <code class="fragment" data-fragment-index="4"><pre>
+$ docker run -ti --name=working-container this-always-works bash
+              </pre></code>
+              <code class="fragment" data-fragment-index="5"><pre>
+$ docker inspect working-container
+$ docker history this-always-works
+              </pre></code>
+              <code class="fragment" data-fragment-index="6"><pre>
+$ docker run -ti --rm --name=working-container \
+  --entrypoint="/bin/bash" this-always-works -l
+              </pre></code>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Debugging - tools II</h2>
+          <ul>
+            <li>Let's finally run <code>strace</code>
+              <code class="fragment" data-fragment-index="1"><pre>
+$ strace /this-errors-out
+              </pre></code>
+              <code class="fragment" data-fragment-index="2"><pre>
+$ id
+$ dnf install strace
+              </pre></code>
+              <code class="fragment" data-fragment-index="3"><pre>
+$ docker run -ti --rm --user=root \
+  --cap-add=SYS_PTRACE --name=working-container \
+  --entrypoint="/bin/bash" this-always-works -l
+$ dnf install strace
+$ strace /this-errors-out
+              </pre></code>
+            </li>
+          </ul>
+          <aside class="notes">
+            <ul>
+              <li>create the file and let it run successfully</li>
+              <li>talk about CMD [binary, sleep]; run && exec</li>
+            </ul>
+          </aside>
+        </section>
+
 
         <section>
           <h2>Building images</h2>
@@ -195,6 +256,7 @@ $ docker history --no-trunc secret-image
 $ docker run --rm -ti secret-image bash
 $ ls -lha /home/app/.ssh
 $ docker save -o image.tar secret-image
+$ sudo mc
                 </pre></code>
               </li>
               <li class="fragment" data-fragment-index="2">Is layering that important?
@@ -272,6 +334,11 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
               </pre></code>
             </li>
           </ul>
+          
+          <p style="font-size: 60%" class="fragment" data-fragment-index="1">
+            More info:
+            <a href="http://rhelblog.redhat.com/2016/10/17/secure-your-containers-with-this-one-weird-trick/">rhelblog.redhat.../secure-your-containers-with-this-one-weird-trick/</a>
+          </p>
           <aside class="notes">
             <ul>
               <li>mention --cap-drop ALL</li>
@@ -282,8 +349,6 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
         <section>
           <h2>Capabilities III</h2>
           <ul>
-            <li class="fragment">CAP_SETFCAP</li>
-            <li class="fragment">CAP_SETPCAP</li>
             <li class="fragment">CAP_DAC_OVERRIDE</li>
             <li class="fragment">CAP_NET_BIND_SERVICE — service can bind to ports &lt;1024</li>
             <li class="fragment">CAP_NET_RAW</li>
@@ -291,8 +356,6 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
           </ul>
           <aside class="notes">
             <ul>
-              <li>Show dac_override with root</li>
-              <li>Show dac_override without root</li>
               <li>getfattr -dm- /usr/sbin/ping</li>
               <li>getcap /usr/sbin/ping</li>
               <li>Describe CAP_SYS_ADMIN</li>
@@ -301,58 +364,43 @@ chown: changing ownership of 'root/.bashrc': Operation not permitted
         </section>
 
         <section>
-          <h2>Debugging - tools</h2>
-            <ul>
-              <li>strace</li>
-$ docker run --rm -ti --name=working-container this-always-works
-$ strace docker run --rm -ti this-always-works
-$ docker run -ti this-always-works --name=working-container bash
-$ docker inspect
-$ docker history
-$ docker run -ti --rm --name=working-container --entrypoint="/bin/bash" this-always-works -l
-$ strace /this-errors-out
-$ id
-$ dnf install strace
-$ docker run -ti --rm --user=root --cap-add=SYS_PTRACE --name=working-container --entrypoint="/bin/bash" this-always-works -l
-$ dnf install strace
-$ strace /this-errors-out
-              <li>docker run -ti image bash</li>
-            </ul>
+          <h2>Networking</h2>
+          <img width="55%" height="55%" src="https://d3ansictanv2wj.cloudfront.net/dnsd_0202-ddb10d3a0d4382769c65ec58aba34cb8.png">
+          <p style="font-size: 60%">Source: https://www.oreilly.com/learning/what-is-docker-networking</p>
           <aside class="notes">
             <ul>
-              <li>binary to open a file and fail with: No such file or dir</li>
-              <li>the container has ENTRYPOINT set to the binary</li>
-              <li>strace docker run</li>
-              <li>strace inside container</li>
-              <li>install strace first</li>
-              <li>via docker exec -u root</li>
-              <li>docker run bash</li>
-              <li>create the file and let it run successfully</li>
-              <li>talk about CMD [binary, sleep]; run && exec</li>
+              <li></li>
             </ul>
           </aside>
         </section>
 
         <section>
-          <h2>Networking</h2>
-          https://docs.docker.com/engine/userguide/networking/
-            <ul>
-              <li>So how does docker networking work by default?</li>
-docker network ls
-docker create --name=toy -p 8000:8000 fedora:25 bash
-ip addr show docker0
-docker network inspect
-ip route
-iptables -t nat -L -n
-https://github.com/shaded-enmity/docker-network-capture
-            </ul>
-            <img src="https://d3ansictanv2wj.cloudfront.net/dnsd_0202-ddb10d3a0d4382769c65ec58aba34cb8.png">
-            Source: https://www.oreilly.com/learning/what-is-docker-networking
+          <h2>Networking II</h2>
+          <ul>
+            <li>So how does docker networking work by default?
+              <code class="fragment" data-fragment-index="1"><pre>
+$ docker network ls
+$ docker create -ti --name=toy -p 8000:8000 fedora:25 bash
+$ ip addr show docker0
+$ docker network inspect bridge
+$ ip route
+$ iptables -t nat -L
+              </pre></code>
+            </li>
+          </ul>
+          <p style="font-size: 60%" class="fragment" data-fragment-index="2">
+            <span class="fa fa-github-square"></span>
+            <a href="https://github.com/shaded-enmity/docker-network-capture">shaded-enmity/docker-network-capture
+            </a>
+          </p>
+          <p style="font-size: 60%" class="fragment" data-fragment-index="2">
+            More info:
+            <a href="https://docs.docker.com/engine/userguide/networking/">docs.docker.com/.../networking/</a>
+          </p>
           <aside class="notes">
             <ul>
               <li>create and start a container</li>
               <li>iptables - INPUT - no inbound connection permitted</li>
-              <li>show veth interfaces (find a picture)</li>
               <li>show firewall rules</li>
               <li>show podvody's debugging tool</li>
             </ul>
@@ -361,49 +409,89 @@ https://github.com/shaded-enmity/docker-network-capture
 
         <section>
           <h2>SELinux</h2>
-          http://danwalsh.livejournal.com/76016.html
-            <ul>
-getenforce
-docker create -ti -v $PWD/volume:/volume --name=toy fedora:25 bash
-ll -Z -d ./volume
-docker start toy
-docker attach toy
-ll -Z -d /
-touch /volume/file
-
-ll -Z /etc/shadow
-docker run --rm -ti -v /etc/shadow:/hostshadow:Z --name=toy fedora:25 bash
-ll -Z /hostshadow
-ll -Z /etc/shadow
-restorecon -v /etc/passwd
-ll -Z /etc/shadow
-restorecon -v -F /etc/passwd
-ll -Z /etc/shadow
-docker run --rm -ti -v /etc/shadow:/hostshadow:Z --security-opt=label:disable --name=toy fedora:25 bash
-ll -Z /
-ll -Z /etc/shadow
-              <li>:z shared</li>
-              <li>:Z unshared</li>
-              <li></li>
-            </ul>
+          <ul>
+            <li class="fragment" data-fragment-index="1">Introduction:
+              <code class="fragment" data-fragment-index="2"><pre>
+$ getenforce
+$ docker create -ti -v $PWD/volume:/volume --name=toy fedora:25 bash
+$ ll -Z -d ./volume
+$ docker start toy
+$ docker attach toy
+$ ll -Z -d /
+$ touch /volume/file
+              </pre></code>
+            </li>
+          </ul>
           <aside class="notes">
             <ul>
-              <li>show 2 containers accessing the dir if time</li>
+              <li>Start with intro to SELinux</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>SELinux II</h2>
+          <ul>
+            <li class="fragment" data-fragment-index="1"><code>-v path:/container_path:z</code> — shared</li>
+            <li class="fragment" data-fragment-index="2"><code>-v path:/container_path:Z</code> — not shared
+              <code class="fragment" data-fragment-index="2"><pre>
+$ ll -Z /etc/shadow
+$ docker run --rm -ti -v /etc/shadow:/hostshadow:Z \
+  --name=toy fedora:25 bash
+$ ll -Z /hostshadow
+$ ll -Z /etc/shadow
+$ restorecon -v /etc/passwd
+$ ll -Z /etc/shadow
+$ restorecon -v -F /etc/passwd
+$ ll -Z /etc/shadow
+              </pre></code>
+            </li>
+          </ul>
+          <p style="font-size: 60%" class="fragment" data-fragment-index="2">
+          <a href="http://danwalsh.livejournal.com/76016.html">Be careful relabeling volumes with Container run times.</a>
+          </p>
+          <aside class="notes">
+            <ul>
+              <li>show difference in :Z and :z with ll -Z</li>
+              <li>show 2 containers accessing the dir if time allows</li>
               <li>customizable types</li>
             </ul>
           </aside>
         </section>
 
         <section>
-          <h2>Namespaces</h2>
-            <ul>
-ll --color=no /proc/self/ns/
-docker run --rm -ti fedora:25 ls -lha /proc/self/ns
-              <li>Please show me the details of namespaces.</li>
-            </ul>
+          <h2>SELinux III</h2>
+          <ul>
+            <li class="fragment" data-fragment-index="3">Is there an alternative?
+              <code class="fragment" data-fragment-index="3"><pre>
+$ docker run --rm -ti -v $PWD/volume2:/volume/:Z \
+  --security-opt=label:disable --name=toy fedora:25 bash
+$ ll -Z /
+$ touch /volume/file
+$ ll ./volume2
+$ ll -Z -d ./volume2
+              </pre></code>
+            </li>
+          </ul>
           <aside class="notes">
             <ul>
-              <li>/proc/self/ns/</li>
+              <li></li>
+            </ul>
+          </aside>
+        </section>
+
+        <section>
+          <h2>Namespaces</h2>
+          <ul>
+            <li class="fragment" data-fragment-index="1">Please show me the details of namespaces.
+              <code class="fragment" data-fragment-index="3"><pre>
+$ ll --color=no /proc/self/ns/
+$ docker run --rm -ti fedora:25 ls -lha /proc/self/ns
+              </pre></code>
+            </li>
+          </ul>
+          <aside class="notes">
+            <ul>
               <li>write a simple python code to do setns</li>
               <li>what is it for?</li>
             </ul>
@@ -412,17 +500,21 @@ docker run --rm -ti fedora:25 ls -lha /proc/self/ns
 
         <section>
           <h2>Cgroups</h2>
-            <ul>
-docker create --name=toy --memory 256m --cpu-period=50000 --cpu-quota=25000 fedora:25 sleep 9999
-docker start toy
-find /sys/fs/cgroup/ | grep ID
-cat /sys/fs/cgroup/cpu,cpuacct/system.slice/docker-ID.scope/cpu.cfs_period_us
-              <li>How does setting resources for my containers work?</li>
-            </ul>
+          <ul>
+            <li class="fragment" data-fragment-index="1">How are Cgroups used?
+              <code class="fragment" data-fragment-index="1"><pre>
+$ docker create --name=toy --memory 256m \
+  --cpu-period=50000 --cpu-quota=25000 \
+  fedora:25 sleep 9999
+$ docker start toy
+$ find /sys/fs/cgroup/ | grep ID
+$ cat /sys/fs/cgroup/cpu,cpuacct/system.slice/docker-ID.scope/cpu.cfs_period_us
+              </pre></code>
+            </li>
+          </ul>
           <aside class="notes">
             <ul>
-              <li>create container with limits</li>
-              <li>show the limits in cgroup filessytem</li>
+              <li>Give intro to cgroups.</li>
             </ul>
           </aside>
         </section>
@@ -430,25 +522,31 @@ cat /sys/fs/cgroup/cpu,cpuacct/system.slice/docker-ID.scope/cpu.cfs_period_us
         <section>
           <h2>seccomp</h2>
             <ul>
---security-opt seccomp=seccomp/profile.json fedora:25 bash
-chmod 0000 /root/anaconda-ks.cfg
-              <li>What is this?</li>
-              <li>And how is this useful?</li>
+            <li class="fragment" data-fragment-index="1">What is seccomp?
+              <code class="fragment" data-fragment-index="1"><pre>
+$ cat seccomp/profile.json
+$ docker run -ti \
+  --security-opt seccomp=seccomp/profile.json \
+  fedora:25 bash
+$ chmod 0000 /root/anaconda-ks.cfg
+              </pre></code>
+            </li>
             </ul>
           <aside class="notes">
             <ul>
               <li>say I wanted to do reboot, and do it</li>
               <li>instead we have chmod</li>
+              <li>speak about how is this useful: legacy syscalls, smaller attack vector</li>
             </ul>
           </aside>
         </section>
 
         <section>
           <h2>Questions are welcome!</h2>
-          TODO add Peter here
           <ul style="list-style-type: none;">
-            <li><span class="fa fa-github-square"></span> TomasTomecek/devconf-container-roadshow-2017</li>
-            <li><span class="fa fa-twitter-square"></span> @TomasTomec</li>
+            <li><span class="fa fa-github-square"></span> <a href="https://github.com/TomasTomecek/devconf-container-roadshow-2017">TomasTomecek/devconf-container-roadshow-2017</a></li>
+            <li><span class="fa fa-twitter-square"></span> <a href="https://twitter.com/TomasTomec">@TomasTomec</a></li>
+            <li><span class="fa fa-linkedin-square"></span> <a href="https://www.linkedin.com/in/peterschiffer/">Peter</a></li>
           </ul>
         </section>
 

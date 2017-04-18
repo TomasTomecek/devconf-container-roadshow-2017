@@ -1,4 +1,4 @@
-FROM base
+FROM fedora:25
 RUN dnf clean all
 RUN dnf install -y git
 RUN dnf clean all
