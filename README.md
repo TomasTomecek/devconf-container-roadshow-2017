@@ -1,5 +1,8 @@
 # Advanced container deep-dive
 
+Presentation [is available online](https://tomastomecek.github.io/devconf-container-roadshow-2017/#/).
+
+
 ## Setup via USB
 
 If you received USB key from me, this is how you should set the vagrant box up:
