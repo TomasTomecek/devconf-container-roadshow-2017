@@ -5,7 +5,7 @@
 If you received USB key from me, this is how you should set the vagrant box up:
 
 ```
-$ vagrant box add ./devconf-container-roadshow-2017.box
+$ vagrant box add ./devconf-container-roadshow-2017.box --name devconf-container-roadshow-2017
 ```
 
 Now the box is inside your system, so you can init a new vagrant project:
