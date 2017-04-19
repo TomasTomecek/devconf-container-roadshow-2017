@@ -384,7 +384,8 @@ $ docker create -ti --name=toy -p 8000:8000 fedora:25 bash
 $ ip addr show docker0
 $ docker network inspect bridge
 $ ip route
-$ iptables -t nat -L
+$ iptables -t nat -L -nv
+$ iptables -L -nv
               </pre></code>
             </li>
           </ul>
@@ -393,9 +394,13 @@ $ iptables -t nat -L
             <a href="https://github.com/shaded-enmity/docker-network-capture">shaded-enmity/docker-network-capture
             </a>
           </p>
-          <p style="font-size: 60%" class="fragment" data-fragment-index="2">
+          <p style="font-size: 60%" class="fragment" data-fragment-index="3">
             More info:
             <a href="https://docs.docker.com/engine/userguide/networking/">docs.docker.com/.../networking/</a>
+          </p>
+          <p style="font-size: 60%" class="fragment" data-fragment-index="4">
+            More info:
+            <a href="http://windsock.io/tag/docker-proxy/">http://windsock.io/tag/docker-proxy/</a>
           </p>
           <aside class="notes">
             <ul>
